@@ -3,11 +3,11 @@
   <ul data-tasks-target="tasksList"></ul>
 
   <template id="task-template">
-    <li id="task-">
+    <li id="task-" class="task">
       <div data-task-target="view">
         <span class="task-name"></span>
         <span class="badge bg-info"></span>
-        <span class="badge bg-danger" style="display: none;">⚠️ Non sincronizzato</span>
+        <span class="badge bg-danger pending-badge" style="display: none;">⚠️ Non sincronizzato</span>
         <button data-action="click->tasks#editTask">✏️ Modifica</button>
       </div>
       <div data-task-target="edit" style="display: none;">

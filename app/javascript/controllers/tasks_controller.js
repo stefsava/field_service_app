@@ -72,6 +72,7 @@ export default class extends Controller {
         task.pending_sync = true; // 🟡 Segnalo che deve essere sincronizzato
         store.put(task);
         console.log(`📝 Nome del task ${taskId} aggiornato offline: ${newName}`);
+        this.markTaskAsPending(taskId);
       }
     };
   }
@@ -101,6 +102,7 @@ export default class extends Controller {
             const store = tx.objectStore("tasks");
             task.pending_sync = false;
             store.put(task);
+            this.unmarkTaskAsPending(task.id);
           } else {
             console.warn(`⚠️ Task ${task.id} non sincronizzato!`);
           }
@@ -153,7 +155,7 @@ export default class extends Controller {
       stageName.textContent = task.stage_name;
 
       if (task.pending_sync) {
-        const pendingSyncBadge = clone.querySelector(".badge.bg-danger");
+        const pendingSyncBadge = clone.querySelector(".pending-badge");
         pendingSyncBadge.style.display = "inline";
       }
 
@@ -178,23 +180,29 @@ export default class extends Controller {
     const newName = input.value;
     const taskId = input.dataset.taskId;
 
-    try {
-      const response = await fetch(`/tasks/${taskId}.json`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName })
-      });
+    if (navigator.onLine) {
+      try {
+        const response = await fetch(`/tasks/${taskId}.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName })
+        });
 
-      if (response.ok) {
-        console.log(`✅ Task ${taskId} aggiornato su Rails!`);
-        await this.updateTaskNameInIndexedDB(taskId, newName);
-        this.updateTaskInDOM(taskId, newName);
-        this.cancelEdit(event);
-      } else {
-        console.warn(`⚠️ Errore nell'aggiornamento del task ${taskId} su Rails!`);
+        if (response.ok) {
+          console.log(`✅ Task ${taskId} aggiornato su Rails!`);
+          await this.updateTaskNameInIndexedDB(taskId, newName);
+          this.updateTaskInDOM(taskId, newName);
+          this.cancelEdit(event);
+        } else {
+          console.warn(`⚠️ Errore nell'aggiornamento del task ${taskId} su Rails!`);
+        }
+      } catch (error) {
+        console.error(`❌ Errore nell'aggiornamento del task ${taskId} su Rails:`, error);
       }
-    } catch (error) {
-      console.error(`❌ Errore nell'aggiornamento del task ${taskId} su Rails:`, error);
+    } else {
+      await this.updateTaskNameInIndexedDB(taskId, newName);
+      this.updateTaskInDOM(taskId, newName);
+      this.cancelEdit(event);
     }
   }
 
@@ -212,6 +220,22 @@ export default class extends Controller {
     if (taskElement) {
       const taskName = taskElement.querySelector(".task-name");
       taskName.textContent = newName;
+    }
+  }
+
+  markTaskAsPending(taskId) {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      const pendingSyncBadge = taskElement.querySelector(".pending-badge");
+      pendingSyncBadge.style.display = "inline";
+    }
+  }
+
+  unmarkTaskAsPending(taskId) {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      const pendingSyncBadge = taskElement.querySelector(".pending-badge");
+      pendingSyncBadge.style.display = "none";
     }
   }
 
