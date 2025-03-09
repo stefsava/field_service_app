@@ -63,3 +63,5 @@ group :test do
 end
 
 gem "dotenv-rails", "~> 3.1"
+
+gem "xmlrpc", "~> 0.3.3"
