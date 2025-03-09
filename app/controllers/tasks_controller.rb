@@ -1,4 +1,6 @@
 class TasksController < ApplicationController
+  skip_forgery_protection if: -> { request.format.json? } # ✅ Disattiva CSRF solo per JSON
+
   def index
     tasks = fetch_tasks_from_odoo
 
@@ -10,17 +12,17 @@ class TasksController < ApplicationController
 
   def update
     task_id = params[:id]
-    new_status = params[:status]
+    name = params[:name]
 
-    if task_id.blank? || new_status.blank?
-      render json: { success: false, error: "ID o status mancante" }, status: 400
+    if task_id.blank? || name.blank?
+      render json: { success: false, error: "ID o name mancante" }, status: 400
       return
     end
 
-    updated = update_task_in_odoo(task_id, new_status)
+    updated = update_task_in_odoo(task_id, name)
 
     if updated
-      render json: { success: true, id: task_id, status: new_status }
+      render json: { success: true, id: task_id, name: name }
     else
       render json: { success: false, error: "Errore aggiornamento in Odoo" }, status: 422
     end
@@ -45,18 +47,18 @@ class TasksController < ApplicationController
     end
   end
 
-  def update_task_in_odoo(task_id, new_status)
+  def update_task_in_odoo(task_id, name)
     begin
       odoo = OdooClient.new
 
       # Controlliamo se il task esiste prima di aggiornarlo
-      task = odoo.get_task(task_id)
-      unless task
-        Rails.logger.warn "⚠️ Task #{task_id} non trovato in Odoo"
-        return false
-      end
+      # task = odoo.get_task(task_id)
+      # unless task
+      #   Rails.logger.warn "⚠️ Task #{task_id} non trovato in Odoo"
+      #   return false
+      # end
 
-      result = odoo.update_task(task_id, new_status)
+      result = odoo.update_task(task_id, name)
       Rails.logger.info "✅ Task #{task_id} aggiornato con successo in Odoo" if result
       result
     rescue StandardError => e

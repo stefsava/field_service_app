@@ -21,4 +21,12 @@ class OdooClient
       { "fields" => ["id", "name", "stage_id", "date_deadline"] }
     )
   end
+
+  def update_task(task_id, name)
+    @models.execute_kw(
+      ODOO_DB, @uid, ODOO_PASSWORD,
+      "project.task", "write",
+      [task_id.to_i, { name: }]
+    )
+  end
 end
