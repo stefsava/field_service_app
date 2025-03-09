@@ -1,12 +1,13 @@
 class TasksController < ApplicationController
-  before_action :require_login
-
   def index
-    if Current.user&.odoo_user_id
-      tasks = OdooClient.fetch_tasks(Current.user.odoo_user_id)
-      render json: tasks
-    else
-      render json: { error: "Utente non collegato a Odoo" }, status: :unauthorized
-    end
+    @tasks = fetch_tasks_from_odoo
+  end
+
+  private
+
+  def fetch_tasks_from_odoo
+    odoo = OdooClient.new
+    user_id = Current.user.odoo_user_id # Associa l'utente Rails all'utente Odoo
+    odoo.get_tasks(user_id)
   end
 end
