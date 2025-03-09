@@ -1,29 +1,4 @@
-<div data-controller="tasks" class="container mt-4">
+<div data-controller="tasks">
   <h2>📋 Lista Tasks</h2>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Nome</th>
-        <th>Stato</th>
-        <th>Azione</th>
-      </tr>
-    </thead>
-    <tbody data-tasks-target="tasks">
-      <% @tasks.each do |task|
-        task_stage = task.dig 'stage_id', 1
-      %>
-        <tr>
-          <td><%= task["name"] %></td>
-          <td>
-            <span class="badge <%= task_stage == 'done' ? 'bg-success' : 'bg-warning' %>">
-              <%= task_stage %>
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-primary edit-task" data-task-id="<%= task['id'] %>">✏️ Modifica</button>
-          </td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+  <ul data-tasks-target="tasksList"></ul>
 </div>
