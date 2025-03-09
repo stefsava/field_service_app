@@ -36,14 +36,12 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <% if session[:user_id] %>
+            <% if Current.user %>
               <li class="nav-item">
-                <span class="nav-link text-white"<%= Current.user.name %></span>
+                <span class="nav-link text-white"><%= Current.user.name %></span>
               </li>
               <li class="nav-item">
-                <%= form_with url: session_path, method: :delete, class: "d-inline" do %>
-                  <button type="submit" class="nav-link text-white btn btn-link p-0">Logout</button>
-                <% end %>
+                <%= button_to "Logout", session_path, method: :delete, class: "nav-link text-white" %>
               </li>
             <% else %>
               <li class="nav-item">
