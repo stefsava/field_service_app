@@ -3,15 +3,21 @@ import { Controller } from "@hotwired/stimulus";
 export default class extends Controller {
   static targets = ["tasksList"];
 
-  async connect() {
+  connect() {
     console.log("✅ TasksController collegato!");
-    await this.loadTasks();
+    this.loadTasks();
+
+    // 🔥 Ascolta SOLO il ritorno online
+    document.addEventListener("serverOnline", () => {
+      console.log("🌐 Il server è tornato online, aggiornamento tasks...");
+      this.loadTasks();
+    });
   }
 
   async loadTasks() {
     try {
       console.log("🔄 Recupero tasks da Odoo...");
-      const response = await fetch("/tasks.json", { cache: "no-store" }); // ✅ CORRETTO
+      const response = await fetch("/tasks.json", { cache: "no-store" });
       if (!response.ok) throw new Error("Errore nel recupero dei tasks");
 
       const tasks = await response.json();
@@ -30,13 +36,13 @@ export default class extends Controller {
     const store = transaction.objectStore("tasks");
 
     tasks.forEach((task) => {
-      store.put({ ...task, pending_sync: false }); // 🟢 Salviamo con pending_sync=false
+      store.put({ ...task, pending_sync: false });
     });
 
     console.log("✅ Tasks salvati in IndexedDB!");
   }
 
-  async loadTasksFromIndexedDB() {  // ✅ Metodo definito!
+  async loadTasksFromIndexedDB() {
     const db = await this.openDB();
     const transaction = db.transaction("tasks", "readonly");
     const store = transaction.objectStore("tasks");

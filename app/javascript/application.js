@@ -6,14 +6,15 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/service-worker")
       .then((registration) => {
-        console.log("Service Worker registrato con successo:", registration);
+        console.log("✅ Service Worker registrato con successo:", registration);
       })
       .catch((error) => {
-        console.error("Errore nella registrazione del Service Worker:", error);
+        console.error("❌ Errore nella registrazione del Service Worker:", error);
       });
   });
 }
 
+// 🔥 Aggiorna lo stato della connessione nella UI
 function updateNetworkStatus(online) {
   const statusText = document.getElementById("status-text");
   if (!statusText) return;
@@ -27,42 +28,40 @@ function updateNetworkStatus(online) {
   }
 }
 
+// 🔥 Controlla lo stato del server tramite /up
 async function checkFullOnlineStatus() {
-  if (!navigator.onLine) {
-    updateNetworkStatus(false);
-    return;
-  }
-
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 3000);
+    const response = await fetch("/up", { method: "HEAD", cache: "no-store" });
+    const isOnline = response.ok;
 
-    const url = '/up';
+    // Aggiorna la UI
+    updateNetworkStatus(isOnline);
 
-    const response = await fetch(url, { method: "HEAD", cache: "no-store", signal: controller.signal });
-    clearTimeout(timeout);
+    // Invia lo stato alla pagina e ai controller Stimulus
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: "ONLINE_STATUS", online: isOnline });
+    }
 
-    if (response.ok) {
-      updateNetworkStatus(true);
-    } else {
-      updateNetworkStatus(false);
+    // Notifica Stimulus SOLO quando si torna online
+    if (isOnline && !window.wasOnline) {
+      window.wasOnline = true;
+      document.dispatchEvent(new Event("serverOnline"));
+    } else if (!isOnline) {
+      window.wasOnline = false;
     }
   } catch (error) {
+    console.warn("❌ Errore nel ping a /up, il server potrebbe essere offline.");
     updateNetworkStatus(false);
+    window.wasOnline = false;
   }
 }
 
+// 🔥 Controllo dello stato della connessione ogni 10 secondi
 setInterval(checkFullOnlineStatus, 10000);
 
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.addEventListener("message", (event) => {
-    if (event.data && event.data.type === "ONLINE_STATUS") {
-      updateNetworkStatus(event.data.online);
-    }
-  });
-}
-
+// 🔥 Ascolta il ritorno online dal browser
 window.addEventListener("online", checkFullOnlineStatus);
 window.addEventListener("offline", () => updateNetworkStatus(false));
 
+// 🔥 Controllo iniziale al caricamento della pagina
 document.addEventListener("DOMContentLoaded", checkFullOnlineStatus);

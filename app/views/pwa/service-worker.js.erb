@@ -1,6 +1,6 @@
-const CACHE_NAME = "field-service-cache-v2"; // Cambia la versione della cache!
+const CACHE_NAME = "field-service-cache-v3"; // Cambia la versione per forzare il refresh
 
-// Aggiungiamo i file JavaScript fingerprintati alla cache
+// Aggiungiamo i file JavaScript e CSS alla cache
 const urlsToCache = [
   "/",
   "/tasks",  // ✅ Cache anche per la pagina tasks
@@ -52,20 +52,4 @@ self.addEventListener("fetch", (event) => {
       });
     })
   );
-});
-
-async function checkServerStatus() {
-  try {
-    const response = await fetch("/up", { method: "HEAD", cache: "no-store" });
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
-}
-
-self.addEventListener("message", async (event) => {
-  if (event.data && event.data.type === "CHECK_ONLINE") {
-    const isOnline = await checkServerStatus();
-    event.source.postMessage({ type: "ONLINE_STATUS", online: isOnline });
-  }
 });
