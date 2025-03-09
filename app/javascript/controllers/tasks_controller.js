@@ -1,7 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
 export default class extends Controller {
-  static targets = ["tasksList"];
+  static targets = ["tasksList", "view", "edit", "nameInput", "form"];
 
   connect() {
     console.log("✅ TasksController collegato!");
@@ -57,27 +57,6 @@ export default class extends Controller {
       request.onsuccess = () => resolve(request.result || []); // ✅ Sempre un array
       request.onerror = () => reject("❌ Errore nel recupero dei tasks da IndexedDB");
     });
-  }
-
-  async updateTaskName(event) {
-    const taskId = event.target.dataset.taskId;
-    const newName = event.target.value;
-
-    console.log(`📝 Modifica nome task ${taskId} -> ${newName}`);
-
-    await this.updateTaskNameInIndexedDB(taskId, newName);
-
-    const cachedTasks = await this.loadTasksFromIndexedDB();
-    if (!Array.isArray(cachedTasks)) {
-      console.error("❌ Errore: I tasks caricati da IndexedDB non sono un array.");
-      return;
-    }
-
-    this.updateTaskInDOM(taskId, newName);
-
-    if (navigator.onLine) {
-      await this.syncPendingTasks();
-    }
   }
 
   async updateTaskNameInIndexedDB(taskId, newName) {
@@ -162,6 +141,10 @@ export default class extends Controller {
       const li = clone.querySelector("li");
       li.id = `task-${task.id}`;
 
+      const view = clone.querySelector("[data-task-target='view']");
+      const taskName = view.querySelector(".task-name");
+      taskName.textContent = task.name;
+
       const input = clone.querySelector("input");
       input.value = task.name;
       input.dataset.taskId = task.id;
@@ -178,11 +161,57 @@ export default class extends Controller {
     });
   }
 
+  editTask(event) {
+    const taskElement = event.target.closest("li");
+    const view = taskElement.querySelector("[data-task-target='view']");
+    const edit = taskElement.querySelector("[data-task-target='edit']");
+
+    view.style.display = "none";
+    edit.style.display = "block";
+  }
+
+  async confirmEdit(event) {
+    event.preventDefault();
+
+    const taskElement = event.target.closest("li");
+    const input = taskElement.querySelector("[data-task-target='nameInput']");
+    const newName = input.value;
+    const taskId = input.dataset.taskId;
+
+    try {
+      const response = await fetch(`/tasks/${taskId}.json`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName })
+      });
+
+      if (response.ok) {
+        console.log(`✅ Task ${taskId} aggiornato su Rails!`);
+        await this.updateTaskNameInIndexedDB(taskId, newName);
+        this.updateTaskInDOM(taskId, newName);
+        this.cancelEdit(event);
+      } else {
+        console.warn(`⚠️ Errore nell'aggiornamento del task ${taskId} su Rails!`);
+      }
+    } catch (error) {
+      console.error(`❌ Errore nell'aggiornamento del task ${taskId} su Rails:`, error);
+    }
+  }
+
+  cancelEdit(event) {
+    const taskElement = event.target.closest("li");
+    const view = taskElement.querySelector("[data-task-target='view']");
+    const edit = taskElement.querySelector("[data-task-target='edit']");
+
+    view.style.display = "block";
+    edit.style.display = "none";
+  }
+
   updateTaskInDOM(taskId, newName) {
     const taskElement = document.getElementById(`task-${taskId}`);
     if (taskElement) {
-      const input = taskElement.querySelector("input");
-      input.value = newName;
+      const taskName = taskElement.querySelector(".task-name");
+      taskName.textContent = newName;
     }
   }
 
