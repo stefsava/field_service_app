@@ -34,7 +34,14 @@ async function checkFullOnlineStatus() {
   }
 
   try {
-    const response = await fetch("/up", { method: "HEAD", cache: "no-store" });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    const url = '/up';
+
+    const response = await fetch(url, { method: "HEAD", cache: "no-store", signal: controller.signal });
+    clearTimeout(timeout);
+
     if (response.ok) {
       updateNetworkStatus(true);
     } else {

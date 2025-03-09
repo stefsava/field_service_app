@@ -1,0 +1,67 @@
+const CACHE_NAME = "field-service-cache-v1";
+
+// Rails genererà automaticamente i percorsi fingerprintati
+const urlsToCache = [
+  "/",
+  "<%= asset_path('application.css') %>",
+  "<%= asset_path('application.js') %>",
+  "<%= asset_path('bootstrap.min.css') %>"
+];
+
+self.addEventListener("install", (event) => {
+  console.log("🛠️ Service Worker installato!");
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return Promise.all(
+        urlsToCache.map(async (url) => {
+          try {
+            const response = await fetch(url, { method: "GET", cache: "no-store" });
+            if (!response || !response.ok || response.status === 404) {
+              console.warn(`⚠️ Asset non trovato, salto il caching: ${url}`);
+              return;
+            }
+            await cache.put(url, response.clone());
+            console.log(`✅ Asset aggiunto alla cache: ${url}`);
+          } catch (error) {
+            console.warn(`⚠️ Errore nel caching di ${url}: ${error.message}`);
+          }
+        })
+      );
+    })
+  );
+  self.skipWaiting();
+});
+
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Escludiamo la route /up dalla cache
+  if (url.pathname === "/up") {
+    return; // Lasciamo che il browser la gestisca normalmente
+  }
+
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request).then((response) => {
+        return response || caches.match("/");
+      });
+    })
+  );
+});
+
+
+async function checkServerStatus() {
+  try {
+    const response = await fetch("/up", { method: "HEAD", cache: "no-store" });
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}
+
+self.addEventListener("message", async (event) => {
+  if (event.data && event.data.type === "CHECK_ONLINE") {
+    const isOnline = await checkServerStatus();
+    event.source.postMessage({ type: "ONLINE_STATUS", online: isOnline });
+  }
+});

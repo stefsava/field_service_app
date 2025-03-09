@@ -5,20 +5,20 @@ export default class extends Controller {
 
   async connect() {
     console.log("Tasks Controller collegato!");
-    await this.fetchTasks();
+    await this.loadTasks();
   }
 
-  async fetchTasks() {
+  async loadTasks() {
     try {
       const response = await fetch("/tasks");
       if (!response.ok) throw new Error("Errore nel recupero dei tasks");
 
       const tasks = await response.json();
-      this.saveTasksToIndexedDB(tasks);
+      await this.saveTasksToIndexedDB(tasks);
       this.renderTasks(tasks);
     } catch (error) {
-      console.error("Errore nel recupero dei tasks:", error);
-      this.loadTasksFromIndexedDB();
+      console.error("⚠️ Errore nel recupero dei tasks, caricamento da IndexedDB...");
+      await this.loadTasksFromIndexedDB();
     }
   }
 
@@ -28,7 +28,7 @@ export default class extends Controller {
     const store = transaction.objectStore("tasks");
     store.clear();
     tasks.forEach((task) => store.put(task));
-    console.log("Tasks salvati in IndexedDB");
+    console.log("✅ Tasks salvati in IndexedDB");
   }
 
   async loadTasksFromIndexedDB() {
@@ -36,6 +36,7 @@ export default class extends Controller {
     const transaction = db.transaction("tasks", "readonly");
     const store = transaction.objectStore("tasks");
     const tasks = await store.getAll();
+    console.log("📦 Caricati tasks da IndexedDB:", tasks);
     this.renderTasks(tasks);
   }
 
