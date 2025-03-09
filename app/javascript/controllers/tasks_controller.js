@@ -4,20 +4,21 @@ export default class extends Controller {
   static targets = ["tasks"];
 
   async connect() {
-    console.log("Tasks Controller collegato!");
+    console.log("⚡ Tasks Controller collegato!");
     await this.loadTasks();
   }
 
   async loadTasks() {
     try {
-      const response = await fetch("/tasks");
+      console.log("🔄 Recupero tasks da Odoo...");
+      const response = await fetch("/tasks", { cache: "no-store" });
       if (!response.ok) throw new Error("Errore nel recupero dei tasks");
 
       const tasks = await response.json();
       await this.saveTasksToIndexedDB(tasks);
       this.renderTasks(tasks);
     } catch (error) {
-      console.error("⚠️ Errore nel recupero dei tasks, caricamento da IndexedDB...");
+      console.warn("⚠️ Errore nel recupero dei tasks, caricamento da IndexedDB...");
       await this.loadTasksFromIndexedDB();
     }
   }
@@ -36,8 +37,14 @@ export default class extends Controller {
     const transaction = db.transaction("tasks", "readonly");
     const store = transaction.objectStore("tasks");
     const tasks = await store.getAll();
-    console.log("📦 Caricati tasks da IndexedDB:", tasks);
-    this.renderTasks(tasks);
+
+    if (tasks.length > 0) {
+      console.log("📦 Caricati tasks da IndexedDB:", tasks);
+      this.renderTasks(tasks);
+    } else {
+      console.log("⚠️ Nessun task disponibile in IndexedDB");
+      this.tasksTarget.innerHTML = "<li>Nessun task disponibile offline.</li>";
+    }
   }
 
   async openDB() {
@@ -50,13 +57,22 @@ export default class extends Controller {
         }
       };
       request.onsuccess = (event) => resolve(event.target.result);
-      request.onerror = () => reject("Errore nell'apertura di IndexedDB");
+      request.onerror = () => reject("❌ Errore nell'apertura di IndexedDB");
     });
   }
 
   renderTasks(tasks) {
+    if (!tasks || tasks.length === 0) {
+      this.tasksTarget.innerHTML = "<li>Nessun task disponibile.</li>";
+      return;
+    }
+
     this.tasksTarget.innerHTML = tasks
-      .map((task) => `<li>${task.name} - Scadenza: ${task.date_deadline}</li>`)
+      .map((task) => `
+        <li>
+          <strong>${task.name}</strong> - Scadenza: ${task.date_deadline}
+          <button class="btn btn-sm btn-primary edit-task" data-task-id="${task.id}">✏️ Modifica</button>
+        </li>`)
       .join("");
   }
 }

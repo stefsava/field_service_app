@@ -1,4 +1,4 @@
-<div class="container mt-4">
+<div data-controller="tasks" class="container mt-4">
   <h2>📋 Lista Tasks</h2>
   <table class="table table-striped">
     <thead>
@@ -8,7 +8,7 @@
         <th>Azione</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody data-tasks-target="tasks">
       <% @tasks.each do |task|
         task_stage = task.dig 'stage_id', 1
       %>
