@@ -1,4 +1,14 @@
 <div data-controller="tasks">
   <h2>📋 Lista Tasks</h2>
   <ul data-tasks-target="tasksList"></ul>
+
+  <template id="task-template">
+    <li id="task-">
+      <input type="text" value=""
+             data-task-id=""
+             data-action="input->tasks#updateTaskName">
+      <span class="badge bg-info"></span>
+      <span class="badge bg-danger" style="display: none;">⚠️ Non sincronizzato</span>
+    </li>
+  </template>
 </div>

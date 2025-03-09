@@ -73,7 +73,7 @@ export default class extends Controller {
       return;
     }
 
-    this.renderTasks(cachedTasks);
+    this.updateTaskInDOM(taskId, newName);
 
     if (navigator.onLine) {
       await this.syncPendingTasks();
@@ -153,15 +153,43 @@ export default class extends Controller {
   }
 
   renderTasks(tasks) {
-    this.tasksListTarget.innerHTML = tasks
-      .map((task) => `
-        <li>
-          <input type="text" value="${task.name}"
-                 data-task-id="${task.id}"
-                 data-action="input->tasks#updateTaskName">
-          <span class="badge bg-info">${task.stage_name}</span>
-          ${task.pending_sync ? '<span class="badge bg-danger">⚠️ Non sincronizzato</span>' : ""}
-        </li>`)
-      .join("");
+    this.tasksListTarget.innerHTML = ""; // Clear the current list
+
+    tasks.forEach(task => {
+      const template = document.getElementById("task-template");
+      const clone = template.content.cloneNode(true);
+
+      const li = clone.querySelector("li");
+      li.id = `task-${task.id}`;
+
+      const input = clone.querySelector("input");
+      input.value = task.name;
+      input.dataset.taskId = task.id;
+
+      const stageName = clone.querySelector(".badge.bg-info");
+      stageName.textContent = task.stage_name;
+
+      if (task.pending_sync) {
+        const pendingSyncBadge = clone.querySelector(".badge.bg-danger");
+        pendingSyncBadge.style.display = "inline";
+      }
+
+      this.tasksListTarget.appendChild(clone);
+    });
+  }
+
+  updateTaskInDOM(taskId, newName) {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      const input = taskElement.querySelector("input");
+      input.value = newName;
+    }
+  }
+
+  removeTaskFromDOM(taskId) {
+    const taskElement = document.getElementById(`task-${taskId}`);
+    if (taskElement) {
+      taskElement.remove();
+    }
   }
 }
