@@ -52,8 +52,11 @@ export default class extends Controller {
     const transaction = db.transaction("tasks", "readonly");
     const store = transaction.objectStore("tasks");
 
-    const tasks = await store.getAll();
-    return Array.isArray(tasks) ? tasks : []; // ✅ Se non è un array, restituisce un array vuoto
+    return new Promise((resolve, reject) => {
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []); // ✅ Sempre un array
+      request.onerror = () => reject("❌ Errore nel recupero dei tasks da IndexedDB");
+    });
   }
 
   async updateTaskName(event) {
@@ -126,6 +129,10 @@ export default class extends Controller {
           console.error(`❌ Errore sincronizzazione task ${task.id}:`, error);
         }
       }
+
+      console.log(`🔥 Dopo la sincronizzazione, aggiorniamo la lista dalla cache`)
+      const updatedTasks = await this.loadTasksFromIndexedDB();
+      this.renderTasks(updatedTasks);
     };
   }
 
