@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  get "tasks/index"
   get "home/index"
   resource :session
   resources :passwords, param: :token
@@ -14,4 +15,6 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "home#index"
+
+  resources :tasks, only: [:index]
 end
