@@ -23,6 +23,48 @@
   </head>
 
   <body>
+    <header class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="<%= root_path %>">
+          <%= image_tag "logo.png", alt: "Azienda", height: "40" %>
+          <span class="ms-2">Field Service App</span>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <% if session[:user_id] %>
+              <li class="nav-item">
+                <span class="nav-link text-white"<%= Current.user.name %></span>
+              </li>
+              <li class="nav-item">
+                <%= form_with url: session_path, method: :delete, class: "d-inline" do %>
+                  <button type="submit" class="nav-link text-white btn btn-link p-0">Logout</button>
+                <% end %>
+              </li>
+            <% else %>
+              <li class="nav-item">
+                <%= link_to "Accedi", new_session_path, class: "nav-link text-white" %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      </div>
+    </header>
+
+    <% if flash.any? %>
+      <div class="container mt-3">
+        <% flash.each do |type, message| %>
+          <div class="alert <%= type == "alert" ? "alert-danger" : "alert-success" %> alert-dismissible fade show" role="alert">
+            <%= message %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
     <%= yield %>
   </body>
 </html>

@@ -22,3 +22,9 @@ Things you may want to cover:
 * Deployment instructions
 
 * ...
+
+## Architettura
+
+* Odoo → È il sistema centrale dove vengono salvati e sincronizzati i dati.
+* Rails → Funziona come un proxy tra la PWA e Odoo, gestendo l'autenticazione e il recupero dei dati.
+* Service Worker JS → Si occupa di memorizzare i dati offline, permettendo di accedere alle informazioni anche senza connessione.
