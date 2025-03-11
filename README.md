@@ -1,30 +1,89 @@
-# README
+# Field Service App (Rails + Stimulus)
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Field Service App is a **Rails 8** application with **Stimulus.js**, designed for offline management of work orders synchronized with **Odoo**. It uses **IndexedDB** for local data storage and **Service Worker** for offline support.
 
-Things you may want to cover:
+## 🚀 Key Features
 
-* Ruby version
+- **Work order and intervention management**: synchronized with Odoo.
+- **Offline-first approach**: data is stored in IndexedDB and synced when online.
+- **Mobile-first interface**: built with **Bootstrap 5.3**.
+- **Service Worker support**: for caching and offline usage.
+- **Rails 8 standard authentication** with Turbo and Stimulus.
+- **Integration with Odoo API** using **xmlrpc**.
 
-* System dependencies
+## 📦 Installation
 
-* Configuration
+### 1️⃣ Prerequisites
 
-* Database creation
+- **Ruby** 3.x
+- **Rails** 8
+- **PostgreSQL** (optional, if used as a DB)
+- **Docker** (if you want to use a containerized setup)
+- **Node.js** and **Importmap** for JS management (without npm!)
 
-* Database initialization
+### 2️⃣ Clone the repository
 
-* How to run the test suite
+```sh
+git clone https://github.com/stefsava/field_service_app.git
+cd field_service_app
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+### 3️⃣ Install dependencies
 
-* Deployment instructions
+```sh
+bundle install
+```
 
-* ...
+### 4️⃣ Set up the database
 
-## Architettura
+```sh
+bin/rails db:create db:migrate db:seed
+```
 
-* Odoo → È il sistema centrale dove vengono salvati e sincronizzati i dati.
-* Rails → Funziona come un proxy tra la PWA e Odoo, gestendo l'autenticazione e il recupero dei dati.
-* Service Worker JS → Si occupa di memorizzare i dati offline, permettendo di accedere alle informazioni anche senza connessione.
+### 5️⃣ Start the server
+
+```sh
+bin/dev
+```
+
+Or with Docker:
+
+```sh
+docker-compose up --build
+```
+
+## 🔌 Configuration
+
+Modify the `.env.sample` file, rename it to `.env`, and set the correct parameters for Odoo and the database connection.
+
+## 🛠️ Technologies Used
+
+- **Rails 8** with Importmap (no Webpack)
+- **Stimulus.js** for dynamic UI management
+- **Turbo Streams** for real-time updates
+- **Bootstrap 5.3** for responsive design
+- **IndexedDB** for offline data storage
+- **Service Worker** for caching and offline functionality
+- **Odoo API (xmlrpc)** for data synchronization
+
+## 📌 Roadmap
+
+- [x] Synchronization with Odoo
+- [x] Offline support with IndexedDB
+- [x] Responsive UI with Bootstrap 5.3
+- [ ] Conflict resolution between offline and online data
+- [ ] Push notifications for updates
+- [ ] Performance optimizations
+
+## 🤝 Contributions
+
+If you'd like to contribute, feel free to open an **Issue** or a **Pull Request**! 🛠️
+
+## 📄 License
+
+This project is the exclusive property of the author. Redistribution, modification, or use is not permitted without explicit authorization.
+
+## 📧 Contact
+
+If you are interested in this project or need more information, feel free to contact me via email at **[stefano@savanelli.it]**.
+I’d be happy to answer questions, discuss collaborations, or provide technical support. 🚀
